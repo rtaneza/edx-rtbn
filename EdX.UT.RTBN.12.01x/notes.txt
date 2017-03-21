@@ -1,0 +1,30 @@
+Install tools using instructions here:
+http://edx-org-utaustinx.s3.amazonaws.com/UT601x/RTOSdownload.html
+
+Initial test:
+Connect MSP432 board to PC
+Run Keil
+Open project "C:\Keil_v5\MSP432ValvanoWare\InputOutput_MSP432\InputOutput.uvprojx"
+Click Project -> Build Target
+Click Project -> Options for Target ...
+In Device tab: make sure that MSP432P401R is selected
+In Debug tab: make sure CMSIS-DAP debugger is selected.
+Click "Settings" button beside debugger:
+- In Flash Download tab: click Add button
+-- Select MSP432P4xx 256kB Main Flash Memory
+-- Click Add button
+- Click OK button
+- Click OK button
+
+Click Debug -> Start/stop debug
+It will now flash image to the board. This will take a few minutes.
+
+Dialog will be shown: Evaluation, max xxx code
+Click OK
+
+Click Debug -> Run
+
+Press and hold switch 1 -> LED turns blue
+Press and hold switch 2 -> LED turns red
+Press and hold both switches -> LED turns green
+
