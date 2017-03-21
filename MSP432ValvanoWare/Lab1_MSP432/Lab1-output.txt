@@ -1,0 +1,22 @@
+
+**Start Lab 1 Grader**Version 1.00**10-sec run**
+
+
+**Done**
+
+
+Task0: Expected=   1000, min=   1016, max=  16176, jitter=15160, ave=   1044 usec, error=4.4%
+
+Task1: Expected= 100000, min= 103057, max= 115778, jitter=12721, ave= 104322 usec, error=4.3%
+
+Task2: Expected=1000000, min=1044370, max=1044373, jitter=    3, ave=1044372 usec, error=4.4%
+
+Task3: Expected= 100000, min= 103058, max= 115779, jitter=12721, ave= 104322 usec, error=4.3%
+
+Task4: Expected= 100000, min= 103059, max= 115779, jitter=12720, ave= 104322 usec, error=4.3%
+
+Task5: Expected=1000000, min=1044372, max=1044373, jitter=    1, ave=1044372 usec, error=4.4%
+
+Grade= 100
+
+edX code= kkCikKdj
