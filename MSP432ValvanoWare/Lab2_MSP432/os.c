@@ -17,6 +17,19 @@ tcbType tcbs[NUMTHREADS];
 tcbType *RunPt;
 int32_t Stacks[NUMTHREADS][STACKSIZE];
 
+#define NULL (void*)0
+
+typedef void (*taskT)(void);
+
+typedef struct {
+  taskT task;
+  uint32_t period;
+} periodicTaskT;
+
+#define NUM_PERIODIC_TASKS 2
+static periodicTaskT PeriodicTasks[NUM_PERIODIC_TASKS];
+static uint32_t TimeMsec;
+static uint32_t MaxPeriod;
 
 // ******** OS_Init ************
 // Initialize operating system, disable interrupts
@@ -106,8 +119,17 @@ int OS_AddThreads3(void(*task0)(void),
 // These threads can call OS_Signal
 int OS_AddPeriodicEventThreads(void(*thread1)(void), uint32_t period1,
   void(*thread2)(void), uint32_t period2){
-  //***YOU IMPLEMENT THIS FUNCTION*****
-
+  // TODO: Currently, we require that the periods should be multiples of each other.
+  MaxPeriod = period1 > period2 ? period1 : period2;
+  uint32_t minPeriod = period1 < period2 ? period1 : period2;
+  if (MaxPeriod % minPeriod != 0) {
+    return 0;
+  }
+  
+  PeriodicTasks[0].task = thread1;
+  PeriodicTasks[0].period = period1;
+  PeriodicTasks[1].task = thread2;
+  PeriodicTasks[1].period = period2;
   return 1;
 }
 
@@ -124,11 +146,26 @@ void OS_Launch(uint32_t theTimeSlice){
   STCTRL = 0x00000007;         // enable, core clock and interrupt arm
   StartOS();                   // start on the first task
 }
+
 // runs every ms
 void Scheduler(void){ // every time slice
   // run any periodic event threads if needed
+  int i;
+  for (i = 0; i < NUM_PERIODIC_TASKS; i++) {
+    // todo: fix this!
+    if ((PeriodicTasks[i].period == 1 || PeriodicTasks[i].period == TimeMsec) && PeriodicTasks[i].task != NULL) {
+      PeriodicTasks[i].task();
+    }
+  }
+  
   // implement round robin scheduler, update RunPt
   RunPt = RunPt->next;    // Round Robin  
+  
+  if (TimeMsec < MaxPeriod) {
+    TimeMsec++;
+  } else {
+    TimeMsec = 0;
+  }
 }
 
 // ******** OS_InitSemaphore ************
