@@ -439,8 +439,7 @@ int main_step1(void){
 // Implement the three mailbox functions as defined in OS.c and OS.h
 // Use this a simple main program to test the mailbox functions.
 uint32_t Out;
-//int main_step2(void){ 
-int main(void){ 
+int main_step2(void){ 
 	uint32_t in=0;
   OS_MailBox_Init();
   while(1){
@@ -478,7 +477,8 @@ int main_step3(void){
 }
 //***************Step 4*************************
 // Increase to 4 threads
-int main_step4(void){
+//int main_step4(void){
+int main(void){ 
   OS_Init();
   Profile_Init();  // initialize the 7 hardware profiling pins
   Task0_Init();    // microphone init
