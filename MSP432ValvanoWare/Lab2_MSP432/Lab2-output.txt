@@ -1,0 +1,24 @@
+
+
+**Start Lab 2 Grader**Version 1.00**
+
+
+**Done**
+
+
+Task0: Expected=    1000, min=     999, max=    1001, jitter=       2, ave=    1000 usec, error= 0.0%
+
+Task1: Expected=  100000, min=   99998, max=  100002, jitter=       4, ave=  100000 usec, error= 0.0%
+
+Task2: Expected=  100000, min=   55938, max=  100002,                  ave=   99554 usec, error= 0.4%
+
+Task3:                    min=   20102, max=   23122,                  ave=   20407 usec
+
+Task4:                    min= 1007997, max= 1008001,                  ave= 1007999 usec
+
+Task5: Expected= 1000000, min= 1000000, max= 1000000,                  ave= 1000000 usec, error= 0.0%
+
+Grade= 100
+
+edX code= kaCiadad
+

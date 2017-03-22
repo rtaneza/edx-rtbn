@@ -119,7 +119,7 @@ int OS_AddThreads3(void(*task0)(void),
 // These threads can call OS_Signal
 int OS_AddPeriodicEventThreads(void(*thread1)(void), uint32_t period1,
   void(*thread2)(void), uint32_t period2){
-  // TODO: Currently, we require that the periods should be multiples of each other.
+  // Currently, we require that the periods should be multiples of each other.
   MaxPeriod = period1 > period2 ? period1 : period2;
   uint32_t minPeriod = period1 < period2 ? period1 : period2;
   if (MaxPeriod % minPeriod != 0) {
@@ -149,23 +149,23 @@ void OS_Launch(uint32_t theTimeSlice){
 
 // runs every ms
 void Scheduler(void){ // every time slice
+  
+  if (TimeMsec < MaxPeriod) {
+    TimeMsec++;
+  } else {
+    TimeMsec = 1;
+  }
+  
   // run any periodic event threads if needed
   int i;
   for (i = 0; i < NUM_PERIODIC_TASKS; i++) {
-    // todo: fix this!
-    if ((PeriodicTasks[i].period == 1 || PeriodicTasks[i].period == TimeMsec) && PeriodicTasks[i].task != NULL) {
+    if ((TimeMsec % PeriodicTasks[i].period) == 0 && PeriodicTasks[i].task != NULL) {
       PeriodicTasks[i].task();
     }
   }
   
   // implement round robin scheduler, update RunPt
-  RunPt = RunPt->next;    // Round Robin  
-  
-  if (TimeMsec < MaxPeriod) {
-    TimeMsec++;
-  } else {
-    TimeMsec = 0;
-  }
+  RunPt = RunPt->next;
 }
 
 // ******** OS_InitSemaphore ************
