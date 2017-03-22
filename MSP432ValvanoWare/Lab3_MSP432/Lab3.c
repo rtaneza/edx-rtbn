@@ -559,7 +559,8 @@ void TaskF(void){ // consumer
   }
 }
 
-int main_step2(void){
+//int main_step2(void){
+int main(void){
   OS_Init();
   Profile_Init();  // initialize the 7 hardware profiling pins
   OS_InitSemaphore(&sAB, 0);
@@ -1213,7 +1214,7 @@ int main_step5(void){
 // Remember that you must have exactly one main() function, so
 // to work on this step, you must rename all other main()
 // functions in this file.
-int main(void){
+int main_step6(void){
   OS_Init();
   Profile_Init();  // initialize the 7 hardware profiling pins
   Task0_Init();    // microphone init
