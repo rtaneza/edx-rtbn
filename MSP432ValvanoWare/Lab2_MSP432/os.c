@@ -112,8 +112,7 @@ void Scheduler(void){ // every time slice
 //          initial value of semaphore
 // Outputs: none
 void OS_InitSemaphore(int32_t *semaPt, int32_t value){
-  //***YOU IMPLEMENT THIS FUNCTION*****
-
+  *semaPt = value;
 }
 
 // ******** OS_Wait ************
@@ -123,7 +122,15 @@ void OS_InitSemaphore(int32_t *semaPt, int32_t value){
 // Inputs:  pointer to a counting semaphore
 // Outputs: none
 void OS_Wait(int32_t *semaPt){
+  long sr = StartCritical();
 
+  while (*semaPt <= 0) {
+    EndCritical(sr);
+    sr = StartCritical();
+  }
+
+  (*semaPt)--;
+  EndCritical(sr);
 }
 
 // ******** OS_Signal ************
@@ -133,12 +140,15 @@ void OS_Wait(int32_t *semaPt){
 // Inputs:  pointer to a counting semaphore
 // Outputs: none
 void OS_Signal(int32_t *semaPt){
-//***YOU IMPLEMENT THIS FUNCTION*****
-
+  long sr = StartCritical();
+  (*semaPt)++;
+  EndCritical(sr);
 }
 
 
-
+static uint8_t MailBoxHasData;
+static uint32_t MailBoxData;
+static int32_t MailBoxSem;
 
 // ******** OS_MailBox_Init ************
 // Initialize communication channel
@@ -147,8 +157,9 @@ void OS_Signal(int32_t *semaPt){
 // Outputs: none
 void OS_MailBox_Init(void){
   // include data field and semaphore
-  //***YOU IMPLEMENT THIS FUNCTION*****
-
+  MailBoxHasData = 0;
+  MailBoxData = 0;
+  OS_InitSemaphore(&MailBoxSem, 0);
 }
 
 // ******** OS_MailBox_Send ************
@@ -158,8 +169,17 @@ void OS_MailBox_Init(void){
 // Outputs: none
 // Errors: data lost if MailBox already has data
 void OS_MailBox_Send(uint32_t data){
-  //***YOU IMPLEMENT THIS FUNCTION*****
+  long sr = StartCritical();
+  if (MailBoxHasData) {
+    EndCritical(sr);
+    return;
+  }
 
+  MailBoxData = data;
+  MailBoxHasData = 1;	
+  EndCritical(sr);
+
+  OS_Signal(&MailBoxSem);
 }
 
 // ******** OS_MailBox_Recv ************
@@ -170,8 +190,15 @@ void OS_MailBox_Send(uint32_t data){
 // Inputs:  none
 // Outputs: data retreived
 // Errors:  none
-uint32_t OS_MailBox_Recv(void){ uint32_t data;
-  //***YOU IMPLEMENT THIS FUNCTION*****
+uint32_t OS_MailBox_Recv(void){ 
+  OS_Wait(&MailBoxSem);
+
+  uint32_t data;
+  long sr = StartCritical();
+  data = MailBoxData;
+  MailBoxHasData = 0;
+  EndCritical(sr);
+
   return data;
 }
 
