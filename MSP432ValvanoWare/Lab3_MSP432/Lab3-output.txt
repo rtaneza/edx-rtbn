@@ -1,0 +1,25 @@
+
+
+**Start Lab 3 Grader**MSP432 Version 1.00** 
+
+**Done**
+
+
+Task0: Expected=    1000, min=     999, max=    1001, jitter=       2, ave=    1000 usec, error= 0.0%
+
+Task1: Expected=  100000, min=   99997, max=  100003, jitter=       6, ave=  100000 usec, error= 0.0%
+
+Task2: Expected=  100000, min=    2383, max=  101511,                  ave=   98913 usec, error= 1.0%
+
+Task3:                    min=    9421, max=   11399,                  ave=   10034 usec
+
+Task4:                    min= 1003253, max= 1006126,                  ave= 1004790 usec
+
+Task5: Expected= 1000000, min=  999776, max= 1000116,                  ave=  999893 usec, error= 0.0%
+
+Task6:                    min=  822664, max=  824900,                  ave=  823936 usec
+
+Grade= 100
+
+edX code= FPCiocfa
+

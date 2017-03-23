@@ -15,18 +15,34 @@ void StartOS(void);
 #define NUMTHREADS  6        // maximum number of threads
 #define NUMPERIODIC 2        // maximum number of periodic threads
 #define STACKSIZE   100      // number of 32-bit words in stack per thread
+
 struct tcb{
   int32_t *sp;       // pointer to stack (valid for threads not running
   struct tcb *next;  // linked-list pointer
    // nonzero if blocked on this semaphore
   int32_t *blocked;
    // nonzero if this thread is sleeping
+  uint32_t sleepTime;
 };
+
 typedef struct tcb tcbType;
 tcbType tcbs[NUMTHREADS];
 tcbType *RunPt;
 int32_t Stacks[NUMTHREADS][STACKSIZE];
 
+typedef void (*threadT)(void);
+
+typedef struct {
+  threadT thread;
+  uint32_t period;
+  uint32_t timeLeft;
+} periodicThreadT;
+
+static periodicThreadT PeriodicThreads[NUMPERIODIC];
+static int NumPeriodicThreads;
+
+
+static void runperiodicevents(void);
 
 // ******** OS_Init ************
 // Initialize operating system, disable interrupts
@@ -39,7 +55,7 @@ void OS_Init(void){
   BSP_Clock_InitFastest();// set processor clock to fastest speed
 // perform any initializations needed, 
 // like setting up periodic timer to run runperiodicevents
-
+  BSP_PeriodicTask_Init(runperiodicevents, 1000, 6);
 }
 
 void SetInitialStack(int i){
@@ -90,14 +106,15 @@ int OS_AddThreads(void(*thread0)(void),
   SetInitialStack(5); Stacks[5][STACKSIZE-2] = (int32_t)(thread5); // PC
   RunPt = &tcbs[0];       // thread 0 will run first
 
-  int i;
-  for (i = 0; i < NUMTHREADS; i++) {
+  for (int i = 0; i < NUMTHREADS; i++) {
     tcbs[i].blocked = 0;
+    tcbs[i].sleepTime = 0;
   }
   
   EndCritical(status);
   return 1;               // successful
 }
+
 
 //******** OS_AddPeriodicEventThread ***************
 // Add one background periodic event thread
@@ -111,15 +128,36 @@ int OS_AddThreads(void(*thread0)(void),
 // These threads can call OS_Signal
 // In Lab 3 this will be called exactly twice
 int OS_AddPeriodicEventThread(void(*thread)(void), uint32_t period){
-// ****IMPLEMENT THIS****
+  if (NumPeriodicThreads == NUMPERIODIC || period == 0) {
+    return 0;
+  }
+  
+  PeriodicThreads[NumPeriodicThreads].thread = thread;
+  PeriodicThreads[NumPeriodicThreads].period = period;
+  PeriodicThreads[NumPeriodicThreads].timeLeft = period-1;
+  NumPeriodicThreads++;
+  
   return 1;
-
 }
 
-void static runperiodicevents(void){
-// ****IMPLEMENT THIS****
+static void runperiodicevents(void){
 // **RUN PERIODIC THREADS, DECREMENT SLEEP COUNTERS
-
+  int i;
+  
+  for (i = 0; i < NumPeriodicThreads; i++) {
+    if (PeriodicThreads[i].timeLeft == 0) {
+      PeriodicThreads[i].thread();
+      PeriodicThreads[i].timeLeft = PeriodicThreads[i].period-1; // reload
+    } else {
+      PeriodicThreads[i].timeLeft--;
+    }
+  }
+  
+  for (i = 0; i < NUMTHREADS; i++) {
+    if (tcbs[i].sleepTime > 0) {
+      tcbs[i].sleepTime--;
+    }
+  }
 }
 
 //******** OS_Launch ***************
@@ -135,11 +173,12 @@ void OS_Launch(uint32_t theTimeSlice){
   STCTRL = 0x00000007;         // enable, core clock and interrupt arm
   StartOS();                   // start on the first task
 }
+
 // runs every ms
 void Scheduler(void){ // every time slice
 // ROUND ROBIN, skip blocked and sleeping threads
   RunPt = RunPt->next;
-  while (RunPt->blocked) {
+  while (RunPt->blocked || RunPt->sleepTime > 0) {
     RunPt = RunPt->next;
   }
 }
@@ -161,9 +200,13 @@ void OS_Suspend(void){
 // output: none
 // OS_Sleep(0) implements cooperative multitasking
 void OS_Sleep(uint32_t sleepTime){
-// ****IMPLEMENT THIS****
 // set sleep parameter in TCB
+  DisableInterrupts();
+  RunPt->sleepTime = sleepTime;
+  EnableInterrupts();
+  
 // suspend, stops running
+  OS_Suspend();
 }
 
 // ******** OS_InitSemaphore ************
