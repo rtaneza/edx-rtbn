@@ -155,7 +155,7 @@ void Scheduler(void){      // every time slice
 // If there are multiple highest priority (not blocked, not sleeping) run these round robin
   tcbType *currentPt = RunPt;  
   tcbType *nextThreadToRun = currentPt;
-  uint8_t highestPriorityFound = 255;
+  uint32_t highestPriorityFound = 255;
   
   do {
     currentPt = currentPt->next;

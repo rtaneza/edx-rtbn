@@ -16,7 +16,7 @@
         EXPORT  StartOS
         EXPORT  SysTick_Handler
         IMPORT  Scheduler
-
+        EXPORT  PendSV_Handler
 
 SysTick_Handler                ; 1) Saves R0-R3,R12,LR,PC,PSR
     CPSID   I                  ; 2) Prevent interrupt during switch
