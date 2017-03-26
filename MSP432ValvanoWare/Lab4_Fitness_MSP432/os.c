@@ -44,7 +44,7 @@ typedef struct {
 //static periodicThreadT PeriodicThreads[NUMPERIODIC];
 //static int NumPeriodicThreads;
 
-void static runperiodicevents(void);
+void static decrementSleepCounters(void);
 
 // ******** OS_Init ************
 // Initialize operating system, disable interrupts
@@ -57,10 +57,8 @@ void OS_Init(void){
   BSP_Clock_InitFastest();// set processor clock to fastest speed
 
 // perform any initializations needed, 
-// set up periodic timer to run runperiodicevents to implement sleeping
-// perform any initializations needed, 
-// like setting up periodic timer to run runperiodicevents
-  BSP_PeriodicTask_Init(runperiodicevents, 1000, 0);
+// set up periodic timer to run decrementSleepCounters to implement sleeping
+  BSP_PeriodicTask_Init(decrementSleepCounters, 1000, 1);
 }
 
 void SetInitialStack(int i){
@@ -135,7 +133,7 @@ int OS_AddThreads(void(*thread0)(void), uint32_t p0,
 }
 
 
-void static runperiodicevents(void){
+void static decrementSleepCounters(void){
 // **DECREMENT SLEEP COUNTERS
 // In Lab 4, handle periodic events in RealTimeEvents
   for (int i = 0; i < NUMTHREADS; i++) {
@@ -164,18 +162,20 @@ void Scheduler(void){      // every time slice
 // highest priority thread not blocked and not sleeping 
 // If there are multiple highest priority (not blocked, not sleeping) run these round robin
   tcbType *currentPt = RunPt;  
-  tcbType *nextThread = currentPt;
-  uint8_t highest = 255;
+  tcbType *nextThreadToRun = currentPt;
+  uint8_t highestPriorityFound = 255;
   
   do {
     currentPt = currentPt->next;
-    if ((currentPt->priority < highest) && (currentPt->blockedSem == 0) && (currentPt->sleepTimeMsec == 0)) {
-      nextThread = currentPt;
-      highest = currentPt->priority;
+    if ((currentPt->priority < highestPriorityFound) && 
+        (currentPt->blockedSem == 0) && 
+        (currentPt->sleepTimeMsec == 0)) {
+      nextThreadToRun = currentPt;
+      highestPriorityFound = currentPt->priority;
     }
   } while (currentPt != RunPt);
   
-  RunPt = nextThread;
+  RunPt = nextThreadToRun;
 }
 
 //******** OS_Suspend ***************
@@ -322,6 +322,7 @@ int32_t *PeriodicSemaphore1;
 uint32_t Period1; // time between signals
 void RealTimeEvents(void){
   int flag=0;
+  //TODO: This will wrap in ~24 days! (this code is from the course)
   static int32_t realCount = -10; // let all the threads execute once
   // Note to students: we had to let the system run for a time so all user threads ran at least one
   // before signalling the periodic tasks
@@ -372,13 +373,16 @@ int32_t *edgeSemaphore;
 // Outputs: none
 void OS_EdgeTrigger_Init(int32_t *semaPt, uint8_t priority){
 	edgeSemaphore = semaPt;
-//***IMPLEMENT THIS***
-  // P5.1 input with pullup
-  // (c) P5.1 is falling edge event
-  // (d) clear flag1 
-  // (e) arm interrupt on P5.1
-  // (f) priority 
-  // (g) enable interrupt 39 in NVIC
+  P1SEL1 &= ~0x02;   // configure P5.1 as GPIO
+  P1SEL0 &= ~0x02;   
+  P5DIR &= ~0x02; // make P5.1 in
+  P5REN |= 0x02;  // enable pullup  
+  P5OUT |= 0x02;  // P5.1 input with pullup
+  P5IES |= 0x02;  // (c) P5.1 is falling edge event
+  P5IFG &= ~0x02; // (d) clear flag1 
+  P5IE  |= 0x02;  // (e) arm interrupt on P5.1
+  NVIC_IPR9 = (NVIC_IPR9&0x00FFFFFF)|0x40000000; // (f) priority 2 (only upper 3 bits are used)
+  NVIC_ISER1 = 0x00000080; // (g) enable interrupt 39 in NVIC
 }
 
 // ******** OS_EdgeTrigger_Restart ************
@@ -387,15 +391,17 @@ void OS_EdgeTrigger_Init(int32_t *semaPt, uint8_t priority){
 // Inputs:  none
 // Outputs: none
 void OS_EdgeTrigger_Restart(void){
-//***IMPLEMENT THIS***
-  // (g) enable interrupt 39 in NVIC
-  // (d) clear flag1 
+  P5IFG &= ~0x02; // (d) clear flag1 
+  P5IE  |= 0x02;  // (e) arm interrupt on P5.1
+  NVIC_ISER1 = 0x00000080; // (g) enable interrupt 39 in NVIC
 }
 void PORT5_IRQHandler(void){
-//***IMPLEMENT THIS***
   // step 1 acknowledge by clearing flag
+  P5IFG &= ~0x02;
   // step 2 signal semaphore (no need to run scheduler)
+  OS_Signal(edgeSemaphore);
   // step 3 disarm interrupt to prevent bouncing to create multiple signals
+  P5IE  &= ~0x02;
 }
 
 

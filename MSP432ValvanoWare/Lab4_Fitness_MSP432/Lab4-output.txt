@@ -1,0 +1,24 @@
+
+
+**Start Lab 4 Grader**MSP432 Version 1.00** 
+
+**Done**
+
+
+Task0: Expected=    1000, min=    1000, max=    1000, jitter=       0, ave=    1000 usec, error= 0.0%
+
+Task1: Expected=  100000, min=   99998, max=  100001, jitter=       3, ave=   99999 usec, error= 0.0%
+
+Task2: Expected=  100000, min=   67309, max=  100001,                  ave=   99666 usec, error= 0.3%
+
+Task3:                    min=  260905, max= 1737000,                  ave=  998952 usec
+
+Task4:                    min= 1002684, max= 1002714,                  ave= 1002699 usec
+
+Task5: Expected= 1000000, min= 1000000, max= 1000000,                  ave= 1000000 usec, error= 0.0%
+
+Task6:                    min=  820733, max=  821953,                  ave=  821118 usec
+
+Grade= 100
+
+edX code= lfCmjPkh
