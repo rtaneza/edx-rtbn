@@ -28,3 +28,15 @@ Press and hold switch 1 -> LED turns blue
 Press and hold switch 2 -> LED turns red
 Press and hold both switches -> LED turns green
 
+------------
+
+MSP432P4xx SimpleLink™ Microcontrollers
+Technical Reference Manual
+
+http://www.ti.com/general/docs/lit/getliterature.tsp?baseLiteratureNumber=SLAU356&fileType=pdf
+
+
+MSP432P401R, MSP432P401M SimpleLink™ Mixed-Signal Microcontrollers
+Device datasheet: contains interrupt numbers
+
+http://www.ti.com/lit/ds/symlink/msp432p401r.pdf
