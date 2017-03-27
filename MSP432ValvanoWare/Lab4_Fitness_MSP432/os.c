@@ -372,7 +372,7 @@ int32_t *edgeSemaphore;
 //          priority
 // Outputs: none
 void OS_EdgeTrigger_Init(int32_t *semaPt, uint8_t priority){
-	edgeSemaphore = semaPt;
+  edgeSemaphore = semaPt;
   P1SEL1 &= ~0x02;   // configure P5.1 as GPIO
   P1SEL0 &= ~0x02;   
   P5DIR &= ~0x02; // make P5.1 in
