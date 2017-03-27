@@ -35,6 +35,12 @@
 #define EDISK_ADDR_MIN      0x00020000  // Flash Bank1 minimum address
 #define EDISK_ADDR_MAX      0x0003FFFF  // Flash Bank1 maximum address
 
+#define FLASH_ERASE_SIZE    4096
+
+#if (((EDISK_ADDR_MAX+1) % EDISK_ADDR_MIN) != 0)
+#error EDISK capacity should be multiple of FLASH_ERASE_SIZE
+#endif
+
 enum DRESULT{
   RES_OK = 0,                 // Successful
   RES_ERROR = 1,              // R/W Error

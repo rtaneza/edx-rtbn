@@ -33,8 +33,11 @@
  */
 
 #include <stdint.h>
+#include <string.h>
 #include "eDisk.h"
 #include "FlashProgram.h"
+
+#define SECTOR_SIZE 512
 
 //*************** eDisk_Init ***********
 // Initialize the interface between microcontroller and disk
@@ -69,7 +72,11 @@ enum DRESULT eDisk_ReadSector(
 // starting ROM address of the sector is	EDISK_ADDR_MIN + 512*sector
 // return RES_PARERR if EDISK_ADDR_MIN + 512*sector > EDISK_ADDR_MAX
 // copy 512 bytes from ROM (disk) into RAM (buff)
-// **write this function**
+  if ((EDISK_ADDR_MIN + (sector * SECTOR_SIZE)) > EDISK_ADDR_MAX) {
+    return RES_PARERR;
+  }
+  
+  memcpy(buff, (void*)(EDISK_ADDR_MIN + (sector * SECTOR_SIZE)), SECTOR_SIZE);
 
   return RES_OK;
 }
@@ -91,8 +98,15 @@ enum DRESULT eDisk_WriteSector(
 // return RES_PARERR if EDISK_ADDR_MIN + 512*sector > EDISK_ADDR_MAX
 // write 512 bytes from RAM (buff) into ROM (disk)
 // you can use Flash_FastWrite or Flash_WriteArray
-// **write this function**
- 
+  if ((EDISK_ADDR_MIN + (sector * SECTOR_SIZE)) > EDISK_ADDR_MAX) {
+    return RES_PARERR;
+  }
+  
+  uint16_t count = SECTOR_SIZE / 4;
+  int successfulWrites = Flash_WriteArray((uint32_t*)buff, EDISK_ADDR_MIN + (sector * SECTOR_SIZE), count);
+  if (successfulWrites != (int)count) {
+    return RES_ERROR;
+  }
       
   return RES_OK;
 }
@@ -108,7 +122,14 @@ enum DRESULT eDisk_WriteSector(
 //  RES_PARERR    4: Invalid Parameter
 enum DRESULT eDisk_Format(void){
 // erase all flash from EDISK_ADDR_MIN to EDISK_ADDR_MAX
-// **write this function**
+  
+  // EDISK capacity is guaranteed to be multiple of FLASH_ERASE_SIZE.
+  for (uint32_t addr = EDISK_ADDR_MIN; addr < EDISK_ADDR_MAX; addr += FLASH_ERASE_SIZE) {
+    int result = Flash_Erase(addr);
+    if (result != NOERROR) {
+      return RES_ERROR;
+    }
+  }
   
   return RES_OK;
 }

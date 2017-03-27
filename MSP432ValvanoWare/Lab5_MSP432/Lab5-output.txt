@@ -1,0 +1,53 @@
+
+**Start Lab 5 Grader**MSP432 Version 1.00**
+Erasing 0x20000 through 0x20FFF using Flash_Erase(), ok.
+Attempting to write 0x10101010 to 0x20000 using Flash_Write(), ok.
+Attempting to write 0x0BADBEEF to 0x20004 using Flash_Write(),ok.
+Attempting to write 0xBEEFF00D to 0x20008 using Flash_Write(),ok
+Attempting to write 10 words starting at 0x2000C using Flash_WriteArray(), ok.
+Attempting to write 10 words starting at 0x20080 using Flash_FastWrite(), ok.
+Attempting to format eDisk using eDisk_Format(), ok.
+Attempting to write 512-byte sector 8 using eDisk_WriteSector(), ok.
+Attempting to read 512-byte sector 8 using eDisk_ReadSector(), ok.
+Attempting to format file system using OS_File_Format(), ok.
+Attempting to create first new file using OS_File_New(), Appending "buf0____" to first file using OS_File_Append().
+Appending "buf1____" to first file using OS_File_Append().
+Appending "buf2____" to first file using OS_File_Append().
+Appending "buf3____" to first file using OS_File_Append().
+Appending "buf4____" to first file using OS_File_Append().
+Appending "buf5____" to first file using OS_File_Append().
+Appending "buf6____" to first file using OS_File_Append().
+Appending "buf7____" to first file using OS_File_Append().
+Attempting to create second new file using OS_File_New().
+Appending "dat0____" to second file using OS_File_Append().
+Appending "dat1____" to second file using OS_File_Append().
+Appending "dat2____" to second file using OS_File_Append().
+Appending "dat3____" to second file using OS_File_Append().
+Attempting to create third new file using OS_File_New().
+Appending "arr0____" to third file using OS_File_Append().
+Appending "arr1____" to third file using OS_File_Append().
+Appending "buf8____" to first file using OS_File_Append().
+Appending "buf9____" to first file using OS_File_Append().
+Appending "arr2____" to third file using OS_File_Append().
+Appending "dat4____" to second file using OS_File_Append(), ok.
+Attempting to save file system to flash using OS_File_Flush(), ok.
+Attempting to get the size of first file using OS_File_Size(), 10, ok.
+Attempting to get the size of second file using OS_File_Size(), 5, ok.
+Attempting to get the size of third file using OS_File_Size(), 3. ok.
+Attempting to get the size of fourth file using OS_File_Size(), 0, ok.
+Attempting to read the first block of the first file using OS_File_Read(), ok.
+Attempting to read the second block of the first file using OS_File_Read(), ok.
+Attempting to read the third block of the first file using OS_File_Read(), ok.
+Attempting to read the fourth block of the first file using OS_File_Read(), ok.
+Attempting to read the first block of the second file using OS_File_Read(), ok.
+Attempting to read the second block of the second file using OS_File_Read(), ok.
+Attempting to read the third block of the second file using OS_File_Read(), ok.
+Attempting to read the fourth block of the second file using OS_File_Read(), ok.
+Attempting to read the first block of the third file using OS_File_Read(), ok.
+Attempting to read the second block of the third file using OS_File_Read(), ok.
+Attempting to read the third block of the third file using OS_File_Read(), ok.
+Attempting to read the fourth block of the third file using OS_File_Read(), ok.
+
+Grade= 100
+edX code= JOCiEOlh
+**Done**
