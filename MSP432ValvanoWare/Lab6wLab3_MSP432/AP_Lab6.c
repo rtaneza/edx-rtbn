@@ -7,6 +7,7 @@
 // CC2650 booster or CC2650 LaunchPad, CC2650 needs to be running SimpleNP 2.2 (POWERSAVE)
 
 #include <stdint.h>
+#include <string.h>
 #include "../inc/UART0.h"
 #include "../inc/UART1.h"
 #include "../inc/AP.h"
@@ -24,6 +25,8 @@
 #define OutChar(N)
 #endif
 
+#define ARRAYSIZE(a) (sizeof(a)/sizeof((a)[0]))
+  
 //****links into AP.c**************
 extern const uint32_t RECVSIZE;
 extern uint8_t RecvBuf[];
@@ -49,7 +52,22 @@ typedef struct NotifyCharacteristics{
 extern const uint32_t NOTIFYMAXCHARACTERISTICS;
 extern uint32_t NotifyCharacteristicCount;
 extern NotifyCharacteristic_t NotifyCharacteristicList[];
+
+extern const uint8_t NPI_GetStatus[];
+extern const uint8_t NPI_GetVersion[];
+extern uint8_t NPI_AddService[];
+extern const uint8_t NPI_Register[];
+extern uint8_t NPI_AddCharValue[];
+extern uint8_t NPI_AddCharDescriptor[];
+
 //**************Lab 6 routines*******************
+static uint32_t GetMsgSize(const uint8_t* msg) {
+  // AP_GetSize returns the payload length
+  uint32_t length = AP_GetSize((uint8_t*)msg);
+  // Add SOF, Length (2 bytes), Command (2 bytes), and FCS
+  return (length + 6);
+}
+
 // **********SetFCS**************
 // helper function, add check byte to message
 // assumes every byte in the message has been set except the FCS
@@ -59,9 +77,12 @@ extern NotifyCharacteristic_t NotifyCharacteristicList[];
 //         stores the FCS into message itself
 // Outputs: none
 void SetFCS(uint8_t *msg){
-//****You implement this function as part of Lab 6*****
-
-  
+  uint8_t fcs = 0;
+  uint32_t msgSize = GetMsgSize(msg);
+  for (int i = 1; i < (msgSize-1); i++) {
+    fcs ^= msg[i];
+  }
+  msg[msgSize-1] = fcs;
 }
 //*************BuildGetStatusMsg**************
 // Create a Get Status message, used in Lab 6
@@ -70,9 +91,8 @@ void SetFCS(uint8_t *msg){
 // build the necessary NPI message that will Get Status
 void BuildGetStatusMsg(uint8_t *msg){
 // hint: see NPI_GetStatus in AP.c
-//****You implement this function as part of Lab 6*****
-
-  
+  uint32_t msgSize = GetMsgSize(NPI_GetStatus);
+  memcpy(msg, NPI_GetStatus, msgSize);
 }
 //*************Lab6_GetStatus**************
 // Get status of connection, used in Lab 6
@@ -96,9 +116,8 @@ uint32_t Lab6_GetStatus(void){volatile int r; uint8_t sendMsg[8];
 // build the necessary NPI message that will Get Status
 void BuildGetVersionMsg(uint8_t *msg){
 // hint: see NPI_GetVersion in AP.c
-//****You implement this function as part of Lab 6*****
-  
-  
+  uint32_t msgSize = GetMsgSize(NPI_GetVersion);
+  memcpy(msg, NPI_GetVersion, msgSize);
 }
 //*************Lab6_GetVersion**************
 // Get version of the SNP application running on the CC2650, used in Lab 6
@@ -118,9 +137,11 @@ uint32_t Lab6_GetVersion(void){volatile int r;uint8_t sendMsg[8];
 // Output none
 // build the necessary NPI message that will add a service
 void BuildAddServiceMsg(uint16_t uuid, uint8_t *msg){
-//****You implement this function as part of Lab 6*****
-  
-  
+  uint32_t msgSize = GetMsgSize(NPI_AddService);
+  memcpy(msg, NPI_AddService, msgSize);
+  msg[6] = uuid&0xFF;
+  msg[7] = uuid>>8;
+  SetFCS(msg);
 }
 //*************Lab6_AddService**************
 // Add a service, used in Lab 6
@@ -138,10 +159,9 @@ int Lab6_AddService(uint16_t uuid){ int r; uint8_t sendMsg[12];
 // Inputs pointer to empty buffer of at least 6 bytes
 // Output none
 // build the necessary NPI message that will register a service
-void BuildRegisterServiceMsg(uint8_t *msg){
-//****You implement this function as part of Lab 6*****
-  
-  
+void BuildRegisterServiceMsg(uint8_t *msg){  
+  uint32_t msgSize = GetMsgSize(NPI_Register);
+  memcpy(msg, NPI_Register, msgSize);
 }
 //*************Lab6_RegisterService**************
 // Register a service, used in Lab 6
@@ -169,9 +189,14 @@ void BuildAddCharValueMsg(uint16_t uuid,
 // set the maximum length of the attribute value=512
 // for a hint see NPI_AddCharValue in AP.c
 // for a hint see first half of AP_AddCharacteristic and first half of AP_AddNotifyCharacteristic
-//****You implement this function as part of Lab 6*****
-  
-    
+  uint32_t msgSize = GetMsgSize(NPI_AddCharValue);
+  memcpy(msg, NPI_AddCharValue, msgSize);
+  msg[5] = permission;
+  msg[6] = properties; // LSB
+  msg[7] = 0; // MSB    
+  msg[11] = uuid & 0xFF; // LSB
+  msg[12] = uuid >> 8; // MSB
+  SetFCS(msg);
 }
 
 //*************BuildAddCharDescriptorMsg**************
@@ -185,9 +210,14 @@ void BuildAddCharDescriptorMsg(char name[], uint8_t *msg){
 // set the permissions on the string to read
 // for a hint see NPI_AddCharDescriptor in AP.c
 // for a hint see second half of AP_AddCharacteristic
-//****You implement this function as part of Lab 6*****
-  
-  
+  uint32_t msgSize = GetMsgSize(NPI_AddCharDescriptor);
+  memcpy(msg, NPI_AddCharDescriptor, msgSize);
+  uint32_t namelen = strlen(name);
+  msg[1] = namelen + 6; // payload length
+  msg[7] = 20; // max possible length of user string
+  msg[9] = namelen; // length of user string
+  memcpy(msg+11, name, namelen);
+  SetFCS(msg); 
 }
 
 //*************Lab6_AddCharacteristic**************
