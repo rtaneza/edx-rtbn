@@ -58,7 +58,41 @@ extern const uint8_t NPI_GetVersion[];
 extern uint8_t NPI_AddService[];
 extern const uint8_t NPI_Register[];
 extern uint8_t NPI_AddCharValue[];
-extern uint8_t NPI_AddCharDescriptor[];
+extern const uint8_t NPI_SetAdvertisement1[];
+extern uint8_t NPI_SetAdvertisementData[];
+extern const uint8_t NPI_StartAdvertisement[];
+
+static uint8_t AddCharDescriptor[] = {   
+  SOF,0x1A,0x00,  // length determined at run time 6+string length
+  0x35,0x83,      // SNP Add Characteristic Descriptor Declaration
+  0x80,           // User Description String
+  0x01,           // GATT Read Permissions
+  0x14,0x00,      // Maximum Possible length of the user description string
+  0x14,0x00,      // Initial length of the user description string
+  'C','h','a','r','a','c','t','e','r','i','s','t','i','c',' ','0',0, // Initial user description string
+  0x0C,0,0,0};    // FCS (calculated by AP_SendMessageResponse)
+  
+static const uint8_t AddCharDescriptor4[] = {   
+  SOF,27,0x00,    
+  0x35,0x83,      // SNP Add Characteristic Descriptor Declaration
+  0x84,           // User Description String+CCCD
+  0x03,           // CCCD parameters read+write
+  0x01,           // GATT Read Permissions
+  0x14,0x00,      // Maximum Possible length of the user description string
+  0x14,0x00,      // Initial length of the user description string
+  0,0,0,0,0,0,0,0,0,0, // Initial user description string
+  0,0,0,0,0,0,0,0,0,0,
+  0x0E};          // FCS (calculated by AP_SendMessageResponse)
+
+static uint8_t GATTSetDeviceName[] = {   
+  SOF,27,0x00,    
+  0x35,0x8C,      // SNP Set GATT Parameter (0x8C)
+  0x01,           // Generic Access Service
+  0x00,0x00,      // Device Name
+  0,0,0,0,0,0,0,0,0,0, // Initial name
+  0,0,0,0,0,0,0,0,0,0,
+  0,0,0,0,
+  0x77};          // FCS (calculated by AP_SendMessageResponse)
 
 //**************Lab 6 routines*******************
 static uint32_t GetMsgSize(const uint8_t* msg) {
@@ -162,6 +196,7 @@ int Lab6_AddService(uint16_t uuid){ int r; uint8_t sendMsg[12];
 void BuildRegisterServiceMsg(uint8_t *msg){  
   uint32_t msgSize = GetMsgSize(NPI_Register);
   memcpy(msg, NPI_Register, msgSize);
+  SetFCS(msg);
 }
 //*************Lab6_RegisterService**************
 // Register a service, used in Lab 6
@@ -210,11 +245,11 @@ void BuildAddCharDescriptorMsg(char name[], uint8_t *msg){
 // set the permissions on the string to read
 // for a hint see NPI_AddCharDescriptor in AP.c
 // for a hint see second half of AP_AddCharacteristic
-  uint32_t msgSize = GetMsgSize(NPI_AddCharDescriptor);
-  memcpy(msg, NPI_AddCharDescriptor, msgSize);
-  uint32_t namelen = strlen(name);
+  uint32_t msgSize = GetMsgSize(AddCharDescriptor);
+  memcpy(msg, AddCharDescriptor, msgSize);
+  uint32_t namelen = strlen(name)+1; // length, including null-terminator
   msg[1] = namelen + 6; // payload length
-  msg[7] = 20; // max possible length of user string
+  msg[7] = namelen; // max possible length of user string
   msg[9] = namelen; // length of user string
   memcpy(msg+11, name, namelen);
   SetFCS(msg); 
@@ -272,9 +307,16 @@ void BuildAddNotifyCharDescriptorMsg(char name[], uint8_t *msg){
 // set CCCD parameters read+write
 // for a hint see NPI_AddCharDescriptor4 in VerySimpleApplicationProcessor.c
 // for a hint see second half of AP_AddNotifyCharacteristic
-//****You implement this function as part of Lab 6*****
-  
-  
+  uint32_t msgSize = GetMsgSize(AddCharDescriptor4);
+  memcpy(msg, AddCharDescriptor4, msgSize);
+  uint32_t namelen = strlen(name)+1; // length, including null-terminator
+  msg[1] = namelen + 7; // payload length
+  msg[8] = namelen; // max length of user string
+  msg[9] = 0; // MSB
+  msg[10] = namelen; // length of user string
+  msg[11] = 0; // MSB
+  memcpy(msg+12, name, namelen);
+  SetFCS(msg); 
 }
   
 //*************Lab6_AddNotifyCharacteristic**************
@@ -322,9 +364,12 @@ int Lab6_AddNotifyCharacteristic(uint16_t uuid, uint16_t thesize, void *pt,
 void BuildSetDeviceNameMsg(char name[], uint8_t *msg){
 // for a hint see NPI_GATTSetDeviceNameMsg in VerySimpleApplicationProcessor.c
 // for a hint see NPI_GATTSetDeviceName in AP.c
-//****You implement this function as part of Lab 6*****
-  
-  
+  uint32_t msgSize = GetMsgSize(GATTSetDeviceName);
+  memcpy(msg, GATTSetDeviceName, msgSize);
+  uint32_t namelen = strlen(name);
+  msg[1] = (uint8_t)(namelen + 3); // payload length
+  memcpy(msg+8, name, namelen);
+  SetFCS(msg); 
 }
 //*************BuildSetAdvertisementData1Msg**************
 // Create a Set Advertisement Data message, used in Lab 6
@@ -340,23 +385,29 @@ void BuildSetAdvertisementData1Msg(uint8_t *msg){
 // TI_ST_DEVICE_ID = 3
 // TI_ST_KEY_DATA_ID
 // Key state=0
-//****You implement this function as part of Lab 6*****
-  
-  
+  uint32_t msgSize = GetMsgSize(NPI_SetAdvertisement1);
+  memcpy(msg, NPI_SetAdvertisement1, msgSize);
+  SetFCS(msg);
 }
 
 //*************BuildSetAdvertisementDataMsg**************
 // Create a Set Advertisement Data message, used in Lab 6
 // Inputs name is a null-terminated string, maximum length of name is 24 bytes
 //        pointer to empty buffer of at least 36 bytes
+// RT: Actually, max length should be 20, because max payload length is 31.
 // Output none
 // build the necessary NPI message for Scan Response Data
 void BuildSetAdvertisementDataMsg(char name[], uint8_t *msg){
 // for a hint see NPI_SetAdvertisementDataMsg in VerySimpleApplicationProcessor.c
 // for a hint see NPI_SetAdvertisementData in AP.c
-//****You implement this function as part of Lab 6*****
-  
-  
+  uint32_t msgSize = GetMsgSize(NPI_SetAdvertisementData);
+  memcpy(msg, NPI_SetAdvertisementData, msgSize);
+  uint32_t namelen = strlen(name); // length EXCLUDING null-terminator
+  msg[1] = (uint8_t)(namelen + 12); // payload length
+  msg[6] = namelen + 1; // len + type
+  memcpy(msg+8, name, namelen);
+  memcpy(msg+8+namelen, NPI_SetAdvertisementData+27, 9); // "move" bytes after name
+  SetFCS(msg);
 }
 //*************BuildStartAdvertisementMsg**************
 // Create a Start Advertisement Data message, used in Lab 6
@@ -367,9 +418,11 @@ void BuildSetAdvertisementDataMsg(char name[], uint8_t *msg){
 void BuildStartAdvertisementMsg(uint16_t interval, uint8_t *msg){
 // for a hint see NPI_StartAdvertisementMsg in VerySimpleApplicationProcessor.c
 // for a hint see NPI_StartAdvertisement in AP.c
-//****You implement this function as part of Lab 6*****
-  
-  
+  uint32_t msgSize = GetMsgSize(NPI_StartAdvertisement);
+  memcpy(msg, NPI_StartAdvertisement, msgSize);
+  msg[8] = interval & 0xFF;
+  msg[9] = interval >> 8;
+  SetFCS(msg); 
 }
 
 //*************Lab6_StartAdvertisement**************
