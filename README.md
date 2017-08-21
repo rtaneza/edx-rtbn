@@ -3,10 +3,10 @@
 This contains my answers to the lab exercises of the EdX course 
 [UTAustinX: UT.RTBN.12.01x Realtime Bluetooth Networks](https://www.edx.org/course/real-time-bluetooth-networks-shape-world-utaustinx-ut-rtbn-12-01x-0).
 
-This course teaches the design fundamentals of a real-time operating system (RTOS) and how to build a Bluetooth-connected (ARM) device.
+This course teaches the design fundamentals of a real-time operating system (RTOS) by building an ARM-based fitness device with Bluetooth connectivity.
 
 I used the following hardware:
-* MSP432 LaunchPad (MSP-EXP432P401R)
+* MSP432 LaunchPad (MSP-EXP432P401R) with ARM Cortex-M4 core
 * MKII-Educational Booster Pack (BOOSTXL-EDUMKII)
 * CC2650 LaunchPad (LAUNCHXL-CC2650)
 
